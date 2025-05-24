@@ -1,33 +1,40 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
-const urls = {};
+let urls = {};
 
-const latest_id = 1;
+let latest_id = 1;
 
 app.use(cors());
+
+app.use(bodyParser.json());
+
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/public", express.static(`${process.cwd()}/public`));
 
 app.post("/api/shorturl", function (req, res) {
+  console.log(req.body);
   const regex =
-    /^https?:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(:[0-9]{1,5})?(\/.*)?$/;
-  if (!regex.test(req.body.original_url)) {
-    return res.status(400).json({ error: "invalid url" });
+    /^https?:\/\/(localhost|((www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,})|(\d{1,3}\.){3}\d{1,3})(:\d{1,5})?(\/[^\s]*)?$/;
+
+  if (!regex.test(req.body.url)) {
+    return res.json({ error: "invalid url" });
   }
 
-  let short_url = latest_id;
+  let short_url = latest_id.toString();
   latest_id += 1;
 
-  urls[short_url] = req.body.original_url;
+  urls[short_url] = req.body.url;
 
   return res.json({
-    original_url: req.body.original_url,
+    original_url: req.body.url,
     short_url: short_url,
   });
 });
